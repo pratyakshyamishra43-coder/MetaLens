@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+
+<!-- Header -->
+<div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px;">
+    <div>
+        {% if session.get('filename') %}
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+            <span style="width: 8px; height: 8px; background: #6366f1; border-radius: 50%; display: inline-block;"></span>
+            <span style="font-size: 12px; color: #6b7280;">AI Copilot analyzing <strong style="color: #6366f1;">{{ session.get('filename') }}</strong></span>
+        </div>
+        {% endif %}
+        <h2 style="font-size: 28px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px;">
+            Welcome back, <span style="color: #6366f1;">Kaizen</span>
+        </h2>
+        <p style="color: #9ca3af; font-size: 14px;">Here's what your data is saying today.</p>
+    </div>
+    <div style="display: flex; gap: 10px;">
+        <button class="btn-secondary">⬇ Download Report</button>
+        <a href="/analysis"><button class="btn-purple">▶ Run AI Audit</button></a>
+    </div>
+</div>
+
+<!-- Stat Cards -->
+<div class="stat-grid">
+    <div class="stat-card">
+        <div>
+            <div class="stat-label">Datasets</div>
+            <div class="stat-value">1,262</div>
+            <div class="stat-change">↑ Live from OpenMetadata</div>
+        </div>
+        <div class="stat-icon">🗄</div>
+    </div>
+    <div class="stat-card">
+        <div>
+            <div class="stat-label">Rows Analyzed</div>
+            <div class="stat-value">4.82M</div>
+            <div class="stat-change">↑ +820k today</div>
+        </div>
+        <div class="stat-icon">📊</div>
+    </div>
+    <div class="stat-card">
+        <div>
+            <div class="stat-label">PII Findings</div>
+            <div class="stat-value">7</div>
+            <div class="stat-change down">↓ Flagged columns</div>
+        </div>
+        <div class="stat-icon">🛡</div>
+    </div>
+    <div class="stat-card">
+        <div>
+            <div class="stat-label">AI Insights</div>
+            <div class="stat-value">1,204</div>
+            <div class="stat-change">↑ Live</div>
+        </div>
+        <div class="stat-icon">✦</div>
+    </div>
+</div>
+
+<!-- Upload Card -->
+<div class="card">
+    <div class="card-label">⬆ AI INGESTION</div>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <div>
+            <div class="card-title">Upload Dataset</div>
+            <div class="card-subtitle">Auto-detects schema & PII from OpenMetadata</div>
+        </div>
+        <div style="display: flex; gap: 8px;">
+            <span style="background: #f3f4f6; border: 1px solid #e8e8ed; padding: 4px 10px; border-radius: 6px; font-size: 12px; color: #6b7280;">.xlsx</span>
+            <span style="background: #f3f4f6; border: 1px solid #e8e8ed; padding: 4px 10px; border-radius: 6px; font-size: 12px; color: #6b7280;">.csv</span>
+        </div>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data">
+        <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+            <div class="upload-icon">⬆</div>
+            <div class="upload-title">Drop your Excel file here or click to browse</div>
+            <div class="upload-sub">Up to 50MB · auto-detects schema & PII</div>
+            <input type="file" id="fileInput" name="file" accept=".xlsx" required style="display: none;" onchange="this.form.submit()">
+        </div>
+        {% if session.get('filename') %}
+        <div style="margin-top: 12px; font-size: 12px; color: #6b7280; display: flex; align-items: center; gap: 6px;">
+            📄 Last upload: <strong>{{ session.get('filename') }}</strong>
+        </div>
+        {% endif %}
+    </form>
+</div>
+
+<!-- OpenMetadata Status -->
+<div class="card">
+    <div class="card-label">🔗 CONNECTION</div>
+    <div class="card-title" style="margin-bottom: 16px;">OpenMetadata Status</div>
+    <div style="display: flex; align-items: center; gap: 16px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <div class="om-dot"></div>
+            <span style="font-size: 14px; font-weight: 600; color: #166534;">Connected</span>
+        </div>
+        <span style="color: #9ca3af; font-size: 13px;">sandbox.open-metadata.org</span>
+        <span class="tag-safe">✓ Live</span>
+    </div>
+</div>
+
+{% endblock %}
