@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block title %}Data Quality{% endblock %}
+
+{% block content %}
+
+<div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px;">
+    <div>
+        <div class="card-label">◎ HEALTH</div>
+        <div class="card-title">Data Quality Score</div>
+        <div class="card-subtitle">Completeness, validity & risk assessment</div>
+    </div>
+    <button class="btn-secondary">⬇ Export Report</button>
+</div>
+
+<!-- Score + Breakdown -->
+<div class="card">
+    <div style="display: flex; align-items: center; gap: 48px;">
+
+        <!-- Circular Score -->
+        <div style="text-align: center; min-width: 160px;">
+            <svg width="160" height="160" viewBox="0 0 160 160">
+                <circle cx="80" cy="80" r="65" fill="none" stroke="#f3f4f6" stroke-width="12"/>
+                <circle cx="80" cy="80" r="65" fill="none"
+                    stroke="{% if quality_score >= 70 %}#6366f1{% elif quality_score >= 40 %}#f59e0b{% else %}#ef4444{% endif %}"
+                    stroke-width="12"
+                    stroke-dasharray="{{ (quality_score / 100) * 408 }} 408"
+                    stroke-dashoffset="102"
+                    stroke-linecap="round"
+                    transform="rotate(-90 80 80)"/>
+                <text x="80" y="75" text-anchor="middle" fill="#1a1a2e" font-size="32" font-weight="700" font-family="Inter">{{ quality_score }}</text>
+                <text x="80" y="95" text-anchor="middle" fill="#9ca3af" font-size="13" font-family="Inter">/ 100</text>
+            </svg>
+            <div style="font-size: 13px; color: #6b7280; margin-top: 4px;">
+                {% if quality_score >= 70 %}
+                    <span style="color: #16a34a; font-weight: 600;">Good</span>
+                {% elif quality_score >= 40 %}
+                    <span style="color: #d97706; font-weight: 600;">Medium Risk</span>
+                {% else %}
+                    <span style="color: #dc2626; font-weight: 600;">High Risk</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Breakdown Bars -->
+        <div style="flex: 1;">
+            <div class="card-label" style="margin-bottom: 20px;">Score Breakdown</div>
+
+            <div style="margin-bottom: 18px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                    <span style="font-size: 13px; color: #374151;">Null Values</span>
+                    <span style="font-size: 13px; font-weight: 600; color: {% if total_nulls == 0 %}#16a34a{% else %}#dc2626{% endif %};">{{ total_nulls }} found</span>
+                </div>
+                <div style="background: #f3f4f6; border-radius: 4px; height: 6px;">
+                    <div style="background: {% if total_nulls == 0 %}#22c55e{% else %}#ef4444{% endif %}; height: 6px; border-radius: 4px; width: {% if total_nulls == 0 %}100{% else %}30{% endif %}%;"></div>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 18px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                    <span style="font-size: 13px; color: #374151;">PII Risk</span>
+                    <span style="font-size: 13px; font-weight: 600; color: #d97706;">{{ pii_sensitive|length }} sensitive columns</span>
+                </div>
+                <div style="background: #f3f4f6; border-radius: 4px; height: 6px;">
+                    <div style="background: #f59e0b; height: 6px; border-radius: 4px; width: {{ [pii_sensitive|length * 15, 100]|min }}%;"></div>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 18px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                    <span style="font-size: 13px; color: #374151;">Data Completeness</span>
+                    <span style="font-size: 13px; font-weight: 600; color: #16a34a;">Good</span>
+                </div>
+                <div style="background: #f3f4f6; border-radius: 4px; height: 6px;">
+                    <div style="background: #22c55e; height: 6px; border-radius: 4px; width: 85%;"></div>
+                </div>
+            </div>
+
+            <div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                    <span style="font-size: 13px; color: #374151;">Outliers</span>
+                    <span style="font-size: 13px; font-weight: 600; color: #d97706;">3.1%</span>
+                </div>
+                <div style="background: #f3f4f6; border-radius: 4px; height: 6px;">
+                    <div style="background: #f59e0b; height: 6px; border-radius: 4px; width: 30%;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Column Profile -->
+<div class="card">
+    <div class="card-label" style="margin-bottom: 6px;">⊞ COLUMN STATS</div>
+    <div class="card-title" style="margin-bottom: 4px;">Column Profile</div>
+    <div class="card-subtitle">Detailed stats for each column in your uploaded file</div>
+    <table>
+        <tr>
+            <th>Column</th>
+            <th>Null Count</th>
+            <th>Unique Values</th>
+            <th>Sample Value</th>
+            <th>Status</th>
+        </tr>
+        {% for col, stats in profile.items() %}
+        <tr>
+            <td style="font-weight: 500; color: #1a1a2e;">{{ col }}</td>
+            <td>{{ stats.null_count }}</td>
+            <td>{{ stats.unique_values }}</td>
+            <td style="color: #9ca3af;">{{ stats.sample }}</td>
+            <td>
+                {% if stats.null_count == 0 %}
+                    <span class="tag-safe">✓ Clean</span>
+                {% else %}
+                    <span class="tag-nonsensitive">⚠ Has Nulls</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+<!-- Navigation -->
+<div style="display: flex; gap: 12px;">
+    <a href="/chat"><button class="btn-purple">Next: AI Chat →</button></a>
+    <a href="/analysis"><button class="btn-secondary">← Back to Analysis</button></a>
+</div>
+
+{% endblock %}
