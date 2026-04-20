@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}Analysis{% endblock %}
+
+{% block content %}
+
+<div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px;">
+    <div>
+        <div class="card-label">🔬 SCHEMA MAPPING & PII</div>
+        <div class="card-title">Data Analysis</div>
+        <div class="card-subtitle">Table: <strong style="color: #6366f1;">{{ table_name }}</strong></div>
+    </div>
+    <button class="btn-secondary">⬇ Export Report</button>
+</div>
+
+<!-- Column Matching -->
+<div class="card">
+    <div class="card-label">⟳ SCHEMA MAPPING</div>
+    <div class="card-title">Column Matching</div>
+    <div class="card-subtitle">{{ matched|length }}/{{ matched|length + unmatched|length }} matched · Auto-mapped by AI</div>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;">
+        {% for col in matched %}
+            <span style="background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 500;">✓ {{ col }}</span>
+        {% endfor %}
+        {% for col in unmatched %}
+            <span style="background: #f9fafb; color: #9ca3af; border: 1px solid #e8e8ed; padding: 6px 14px; border-radius: 20px; font-size: 13px;">? {{ col }}</span>
+        {% endfor %}
+    </div>
+
+    <div style="background: #f9fafb; border-radius: 8px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 13px; color: #6b7280;">Match progress</span>
+        <span style="font-size: 13px; font-weight: 600; color: #1a1a2e;">{{ ((matched|length / (matched|length + unmatched|length)) * 100) | int }}%</span>
+    </div>
+    <div style="background: #e8e8ed; border-radius: 4px; height: 4px; margin-top: 8px;">
+        <div style="background: #6366f1; height: 4px; border-radius: 4px; width: {{ ((matched|length / (matched|length + unmatched|length)) * 100) | int }}%;"></div>
+    </div>
+</div>
+
+<!-- PII Detection -->
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+        <div class="card-label">🛡 PRIVACY</div>
+        <span style="font-size: 12px; color: #6366f1; cursor: pointer;">View all</span>
+    </div>
+    <div class="card-title">PII Detection</div>
+    <div class="card-subtitle">{{ pii_sensitive|length + pii_nonsensitive|length }} columns flagged · {{ pii_sensitive|length }} sensitive</div>
+
+    {% for col in pii_sensitive %}
+    <div class="pii-card sensitive">
+        <div class="pii-card-left">
+            <span style="font-size: 20px; color: #dc2626;">🛡</span>
+            <div>
+                <div class="pii-col-name">{{ col }}</div>
+                <div class="pii-col-desc">Direct identifier · Could cause harm if exposed</div>
+            </div>
+        </div>
+        <span class="tag-sensitive">PII.Sensitive</span>
+    </div>
+    {% endfor %}
+
+    {% for col in pii_nonsensitive %}
+    <div class="pii-card nonsensitive">
+        <div class="pii-card-left">
+            <span style="font-size: 20px; color: #d97706;">⚠</span>
+            <div>
+                <div class="pii-col-name">{{ col }}</div>
+                <div class="pii-col-desc">Quasi-identifier · Low risk but handle with care</div>
+            </div>
+        </div>
+        <span class="tag-nonsensitive">PII.NonSensitive</span>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Data Preview -->
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div>
+            <div class="card-label">⊞ PREVIEW</div>
+            <div class="card-title">Data Overview</div>
+            <div class="card-subtitle">{{ session.get('filename') }} · {{ session.get('shape', [0,0])[0] }} rows · {{ session.get('shape', [0,0])[1] }} columns</div>
+        </div>
+        <button class="btn-secondary">⬇ Export</button>
+    </div>
+    <div style="overflow-x: auto;">
+        <table>
+            <tr>
+                {% for col in preview_columns %}
+                    <th>{{ col }}</th>
+                {% endfor %}
+            </tr>
+            {% for row in preview_rows %}
+            <tr>
+                {% for col in preview_columns %}
+                    <td>{{ row[col] }}</td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+</div>
+
+<!-- Navigation -->
+<div style="display: flex; gap: 12px;">
+    <a href="/quality"><button class="btn-purple">Next: Data Quality →</button></a>
+    <a href="/chat"><button class="btn-secondary">Go to AI Chat</button></a>
+</div>
+
+{% endblock %}
