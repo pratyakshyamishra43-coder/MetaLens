@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MetaLens — {% block title %}{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body id="body">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="sidebar-logo">
+            <div class="logo-icon">🔍</div>
+            <div class="logo-text">
+                <h1>MetaLens</h1>
+                <span>AI Data Copilot</span>
+            </div>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-section-label">Workspace</div>
+            <a href="/" class="nav-item {% if request.path == '/' %}active{% endif %}">
+                <span class="nav-icon">⊞</span> Dashboard
+            </a>
+            <a href="/analysis" class="nav-item {% if request.path == '/analysis' %}active{% endif %}">
+                <span class="nav-icon">⬡</span> Analysis
+            </a>
+            <a href="/quality" class="nav-item {% if request.path == '/quality' %}active{% endif %}">
+                <span class="nav-icon">◎</span> Data Quality
+            </a>
+            <a href="/chat" class="nav-item {% if request.path == '/chat' %}active{% endif %}">
+                <span class="nav-icon">✦</span> AI Chat
+            </a>
+            <a href="/lineage" class="nav-item {% if request.path == '/lineage' %}active{% endif %}">
+                <span class="nav-icon">⟳</span> Lineage
+            </a>
+        </div>
+
+        <div class="sidebar-bottom">
+            <div class="om-status">
+                <div class="om-dot"></div>
+                <div>
+                    <div class="om-text">OpenMetadata</div>
+                    <div class="om-sub">Connected · sandbox</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+        <div class="topbar">
+            <div class="topbar-left">
+                <div class="search-box">
+                    <span style="color: #9ca3af; font-size: 14px;">🔍</span>
+                    <input type="text" placeholder="Search datasets, columns, lineage...">
+                    <span style="color: #d1d5db; font-size: 11px;">⌘K</span>
+                </div>
+            </div>
+
+            <div class="topbar-right">
+                <div class="om-badge">
+                    <div class="om-badge-dot"></div>
+                    OpenMetadata Connected
+                </div>
+                <button class="icon-btn" onclick="toggleTheme()" title="Toggle theme">☀</button>
+                <button class="icon-btn" title="Notifications">🔔</button>
+                <div class="user-avatar">
+                    <div class="avatar-circle">K</div>
+                    <div>
+                        <span class="user-name">Kaizen</span>
+                        <span class="user-role">Data Steward</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    <script>
+        function toggleTheme() {
+            document.getElementById('body').classList.toggle('dark');
+        }
+    </script>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>
