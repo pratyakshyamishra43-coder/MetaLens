@@ -16,8 +16,9 @@ FQN = "ACME_MYSQL.default.FINANCIAL_STAGING.ACCOUNTS"
 headers = {"Authorization": f"Bearer {token}"}
 
 def fetch_metadata():
+    fqn = session.get("selected_fqn", "ACME_MYSQL.default.FINANCIAL_STAGING.ACCOUNTS")
     response = requests.get(
-        f"https://sandbox.open-metadata.org/api/v1/tables/name/{FQN}?fields=columns,tags,owners",
+        f"https://sandbox.open-metadata.org/api/v1/tables/name/{fqn}?fields=columns,tags,owners",
         headers=headers
     )
     data = response.json()
@@ -162,10 +163,9 @@ def search_tables():
 
 @app.route("/select_table", methods=["POST"])
 def select_table():
-    global FQN
-    FQN = request.form.get("fqn")
-    session["selected_fqn"] = FQN
-    return redirect(url_for("index"))
+    fqn = request.form.get("fqn")
+    session["selected_fqn"] = fqn
+    return {"status": "ok"}
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
