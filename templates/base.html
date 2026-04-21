@@ -48,41 +48,59 @@
             </div>
         </div>
     </div>
-
-    <!-- MAIN -->
+<!-- //Layout -->
     <div class="main">
-        <div class="topbar">
-                <div class="topbar-left">
-                    <div class="search-box" style="position: relative;">
-                        <span style="color: #9ca3af; font-size: 14px;">🔍</span>
-                        <input type="text" id="globalSearch" placeholder="Search datasets, columns, lineage...">
-                        <span style="color: #d1d5db; font-size: 11px;">⌘K</span>
-                        <div id="search-results" style="position:absolute; top:40px; left:0; background:white; border:1px solid #e5e7eb; border-radius:8px; width:420px; z-index:1000; display:none; box-shadow: 0 4px 16px rgba(0,0,0,0.1);"></div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="topbar-right">
-                <div class="om-badge">
-                    <div class="om-badge-dot"></div>
-                    OpenMetadata Connected
-                </div>
-                <button class="icon-btn" onclick="toggleTheme()" title="Toggle theme">☀</button>
-                <button class="icon-btn" title="Notifications">🔔</button>
-                <div class="user-avatar">
-                    <div class="avatar-circle">K</div>
-                    <div>
-                        <span class="user-name">Kaizen</span>
-                        <span class="user-role">Data Steward</span>
-                    </div>
-                </div>
+    <div class="topbar">
+        <div class="topbar-left">
+            <div class="search-box">
+                <span style="color: #9ca3af; font-size: 14px;">🔍</span>
+                <input type="text" id="globalSearch" placeholder="Search datasets, columns, lineage...">
+                <span style="color: #d1d5db; font-size: 11px;">⌘K</span>
+                <div id="search-results"></div>
             </div>
         </div>
 
-        <div class="content">
-            {% block content %}{% endblock %}
+        <div class="topbar-right">
+            <div class="om-badge">
+                <div class="om-badge-dot"></div>
+                OpenMetadata Connected
+            </div>
+            <button class="icon-btn" onclick="toggleTheme()" title="Toggle theme">☀</button>
+            <button class="icon-btn" title="Notifications">🔔</button>
+            <div class="user-avatar">
+                <div class="avatar-circle">K</div>
+                <div>
+                    <span class="user-name">Kaizen</span>
+                    <span class="user-role">Data Steward</span>
+                </div>
+            </div>
         </div>
     </div>
+
+    <div class="content">
+        {% block content %}{% endblock %}
+    </div>
+</div>
+
+<style>
+    .topbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: nowrap; }
+    .topbar-left { position: relative; }
+    .search-box { position: relative; display: flex; align-items: center; gap: 8px; }
+    #search-results {
+        position: absolute;
+        top: 44px;
+        left: 0;
+        width: 420px;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        z-index: 1000;
+        display: none;
+        max-height: 320px;
+        overflow-y: auto;
+    }
+</style>
 
    <script>
     // Persist dark mode across pages
