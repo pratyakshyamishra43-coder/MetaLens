@@ -84,11 +84,19 @@
         </div>
     </div>
 
-    <script>
-    function toggleTheme() {
-        document.getElementById('body').classList.toggle('dark');
+   <script>
+    // Persist dark mode across pages
+    if (localStorage.getItem('theme') === 'dark') {
+        document.getElementById('body').classList.add('dark');
     }
 
+    function toggleTheme() {
+        const body = document.getElementById('body');
+        body.classList.toggle('dark');
+        localStorage.setItem('theme', body.classList.contains('dark') ? 'dark' : 'light');
+    }
+
+    // Table search
     document.getElementById('globalSearch').addEventListener('input', async function() {
         const q = this.value;
         const div = document.getElementById('search-results');
@@ -97,9 +105,9 @@
         const data = await res.json();
         if (!data.tables || data.tables.length === 0) { div.style.display = 'none'; return; }
         div.innerHTML = data.tables.map(t =>
-            `<div onclick="selectTable('${t.fqn}')" style="padding:10px 14px; cursor:pointer; border-bottom:1px solid #f3f4f6;">
+            `<div onmouseenter="this.style.background='#f5f3ff'" onmouseleave="this.style.background='white'" onclick="selectTable('${t.fqn}')" style="padding:10px 14px; cursor:pointer; border-bottom:1px solid #f3f4f6; transition: background 0.15s;">
                 <div style="font-size:13px; font-weight:600; color:#1a1a2e;">${t.name}</div>
-                <div style="font-size:11px; color:#6b7280;">${t.fqn}</div>
+                <div style="font-size:11px; color:#6b7280; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${t.fqn}</div>
             </div>`
         ).join('');
         div.style.display = 'block';
