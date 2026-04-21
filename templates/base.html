@@ -52,11 +52,13 @@
     <!-- MAIN -->
     <div class="main">
         <div class="topbar">
-            <div class="topbar-left">
-                <div class="search-box">
-                    <span style="color: #9ca3af; font-size: 14px;">🔍</span>
-                    <input type="text" placeholder="Search datasets, columns, lineage...">
-                    <span style="color: #d1d5db; font-size: 11px;">⌘K</span>
+                <div class="topbar-left">
+                    <div class="search-box" style="position: relative;">
+                        <span style="color: #9ca3af; font-size: 14px;">🔍</span>
+                        <input type="text" id="globalSearch" placeholder="Search datasets, columns, lineage...">
+                        <span style="color: #d1d5db; font-size: 11px;">⌘K</span>
+                        <div id="search-results" style="position:absolute; top:40px; left:0; background:white; border:1px solid #e5e7eb; border-radius:8px; width:420px; z-index:1000; display:none; box-shadow: 0 4px 16px rgba(0,0,0,0.1);"></div>
+                    </div>
                 </div>
             </div>
 
@@ -83,10 +85,40 @@
     </div>
 
     <script>
-        function toggleTheme() {
-            document.getElementById('body').classList.toggle('dark');
+    function toggleTheme() {
+        document.getElementById('body').classList.toggle('dark');
+    }
+
+    document.getElementById('globalSearch').addEventListener('input', async function() {
+        const q = this.value;
+        const div = document.getElementById('search-results');
+        if (q.length < 2) { div.style.display = 'none'; return; }
+        const res = await fetch(`/search_tables?q=${encodeURIComponent(q)}`);
+        const data = await res.json();
+        if (!data.tables || data.tables.length === 0) { div.style.display = 'none'; return; }
+        div.innerHTML = data.tables.map(t =>
+            `<div onclick="selectTable('${t.fqn}')" style="padding:10px 14px; cursor:pointer; border-bottom:1px solid #f3f4f6;">
+                <div style="font-size:13px; font-weight:600; color:#1a1a2e;">${t.name}</div>
+                <div style="font-size:11px; color:#6b7280;">${t.fqn}</div>
+            </div>`
+        ).join('');
+        div.style.display = 'block';
+    });
+
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.search-box')) {
+            document.getElementById('search-results').style.display = 'none';
         }
-    </script>
+    });
+
+    function selectTable(fqn) {
+        fetch('/select_table', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: `fqn=${encodeURIComponent(fqn)}`
+        }).then(() => window.location.href = '/');
+    }
+</script>
 
     {% block scripts %}{% endblock %}
 </body>
