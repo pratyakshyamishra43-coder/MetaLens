@@ -103,27 +103,4 @@
     </div>
 </div>
 
-<div id="search-results" style="position:absolute; background:white; border:1px solid #e5e7eb; border-radius:8px; width:400px; z-index:100; display:none;"></div>
-
-<script>
-document.querySelector('input[placeholder*="Search"]').addEventListener('input', async function() {
-    const q = this.value;
-    if (q.length < 2) return;
-    const res = await fetch(`/search_tables?q=${q}`);
-    const data = await res.json();
-    const div = document.getElementById('search-results');
-    div.innerHTML = data.tables.map(t => 
-        `<div onclick="selectTable('${t.fqn}')" style="padding:10px; cursor:pointer; hover:background:#f3f4f6;">
-            ${t.name}<br><small style="color:#6b7280">${t.fqn}</small>
-        </div>`
-    ).join('');
-    div.style.display = data.tables.length ? 'block' : 'none';
-});
-
-function selectTable(fqn) {
-    fetch('/select_table', {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:`fqn=${fqn}`})
-    .then(() => location.reload());
-}
-</script>
-
 {% endblock %}
