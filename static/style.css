@@ -437,27 +437,18 @@ tr:hover td { background: #f9fafb; }
 .quick-btn:hover { border-color: #6366f1; color: #6366f1; background: #eef2ff; }
 
 /* ===== LAYOUT FIX ===== */
-.main { min-width: 0; overflow-x: hidden; }
-.content { max-width: 100%; }
+.main { min-width: 0; }
 
 /* ===== DARK MODE FIXES ===== */
-body.dark { color: #e0e0e0; }
 body.dark .stat-label { color: #9ca3af; }
 body.dark .card-label { color: #6b7280; }
-body.dark .card-subtitle { color: #6b7280; }
 body.dark .pii-col-desc { color: #9ca3af; }
 body.dark .pii-col-name { color: #f0f0f0; }
 body.dark .user-role { color: #6b7280; }
-body.dark .om-sub { color: #4ade80; }
-body.dark .om-text { color: #86efac; }
-body.dark p, body.dark span, body.dark div { color: inherit; }
 body.dark .upload-sub { color: #6b7280; }
 body.dark .search-box input::placeholder { color: #555; }
 body.dark #search-results { background: #1a1a35; border-color: #2a2a50; }
 body.dark #search-results div { color: #e0e0e0 !important; border-color: #2a2a50; }
 body.dark #search-results small { color: #6b7280 !important; }
-body.dark .stat-change { color: #4ade80; }
-body.dark .stat-change.down { color: #f87171; }
-body.dark .topbar { background: #111127; }
 body.dark .om-badge { background: rgba(34,197,94,0.1); border-color: rgba(34,197,94,0.2); color: #4ade80; }
 body.dark .om-badge-dot { background: #4ade80; }
