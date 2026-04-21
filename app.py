@@ -161,11 +161,10 @@ def search_tables():
     tables = [{"fqn": r["_source"]["fullyQualifiedName"], "name": r["_source"]["name"]} for r in results]
     return {"tables": tables}
 
-@app.route("/select_table", methods=["POST"])
-def select_table():
-    fqn = request.form.get("fqn")
-    session["selected_fqn"] = fqn
-    return {"status": "ok"}
+@app.route("/reset_table")
+def reset_table():
+    session.pop("selected_fqn", None)
+    return redirect(url_for("index"))
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
