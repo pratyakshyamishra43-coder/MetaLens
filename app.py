@@ -66,17 +66,29 @@ def analysis():
     excel_cols = session.get("columns", [])
     matched = [col for col in excel_cols if col.upper() in [c["name"].upper() for c in columns]]
     unmatched = [col for col in excel_cols if col.upper() not in [c["name"].upper() for c in columns]]
+
+    # PII Masking
+    preview_rows = session.get("rows", [])
+    masked_rows = []
+    for row in preview_rows:
+        masked_row = {}
+        for key, val in row.items():
+            if key.upper() in [p.upper() for p in pii_sensitive]:
+                masked_row[key] = "*** MASKED ***"
+            else:
+                masked_row[key] = val
+        masked_rows.append(masked_row)
+
     return render_template("analysis.html",
         table_name=table_name,
         columns=columns,
         pii_sensitive=pii_sensitive,
         pii_nonsensitive=pii_nonsensitive,
         preview_columns=session.get("columns", []),
-        preview_rows=session.get("rows", []),
+        preview_rows=masked_rows,
         matched=matched,
         unmatched=unmatched
     )
-
 @app.route("/quality")
 def quality():
     if not session.get("filename"):
@@ -134,6 +146,26 @@ def lineage():
         downstream=downstream,
         filename=session.get("filename")
     )
+
+@app.route("/search_tables")
+def search_tables():
+    query = request.args.get("q", "")
+    if not query:
+        return {"tables": []}
+    response = requests.get(
+        f"https://sandbox.open-metadata.org/api/v1/search/query?q={query}&index=table_search_index&limit=10",
+        headers=headers
+    )
+    results = response.json().get("hits", {}).get("hits", [])
+    tables = [{"fqn": r["_source"]["fullyQualifiedName"], "name": r["_source"]["name"]} for r in results]
+    return {"tables": tables}
+
+@app.route("/select_table", methods=["POST"])
+def select_table():
+    global FQN
+    FQN = request.form.get("fqn")
+    session["selected_fqn"] = FQN
+    return redirect(url_for("index"))
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
