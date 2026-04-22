@@ -73,14 +73,17 @@ MetaLens connects your Excel file to OpenMetadata's governance layer and uses AI
 ![Dashboard](screenshots/dashboard.png)
 
 **Analysis + PII Detection**
-![Analysis](screenshots/analysis.png) ![PII](screenshots/analysis1.png)
+![Analysis](screenshots/analysis.png) ![PII](screenshots/analysis1.png) 
+![Column Impact Score](screenshots/columnimpactscore.png)
+
 
 **Data Quality Score**
 ![Quality](screenshots/quality.png)
 
 **AI Chat**
 ![Chat](screenshots/chat.png) ![AI insights](screenshots/AIinsights.png) 
-![Risk Score](riskscore.png)
+![Risk Score](screenshots/riskscore.png)
+
 
 **Lineage View**
 ![Lineage](screenshots/lineage.png)
