@@ -66,15 +66,23 @@ MetaLens connects your Excel file to OpenMetadata's governance layer and uses AI
 
 ---
 
-## 🖼 Screenshots
 
-| Page | Screenshot |
-|---|---|
-| Dashboard | `screenshots/dashboard.png` |
-| Analysis + PII | `screenshots/analysis.png` |
-| Data Quality | `screenshots/quality.png` |
-| AI Chat | `screenshots/chat.png` |
-| Lineage | `screenshots/lineage.png` |
+|## 🖼 Screenshots
+
+**Dashboard**
+![Dashboard](screenshots/dashboard.png)
+
+**Analysis + PII Detection**
+![Analysis](screenshots/analysis.png) ![PII](screenshots/analysis1.png)
+
+**Data Quality Score**
+![Quality](screenshots/quality.png)
+
+**AI Chat**
+![Chat](screenshots/chat.png)
+
+**Lineage View**
+![Lineage](screenshots/lineage.png)
 
 ---
 
@@ -119,23 +127,33 @@ GROQ_API_KEY=your_groq_api_key
 ---
 
 ## 📁 Project Structure
+
+```
 MetaLens/
-├── app.py                  ← Flask app, 5 routes
-├── fetch_metadata.py       ← OpenMetadata API client
-├── parse_excel.py          ← Excel parsing with pandas
-├── pipeline.py             ← Core pipeline combining metadata + AI
+├── app.py
+├── fetch_metadata.py
+├── parse_excel.py
+├── pipeline.py
 ├── requirements.txt
-├── Procfile                ← gunicorn for Railway
+├── Procfile
+├── .env.example
 ├── static/
-│   └── style.css           ← Global CSS, light theme
+│   └── style.css
 ├── templates/
-│   ├── base.html           ← Sidebar + topbar layout
-│   ├── index.html          ← Dashboard
-│   ├── analysis.html       ← Column matching + PII cards
-│   ├── quality.html        ← Data quality score
-│   ├── chat.html           ← AI chat copilot
-│   └── lineage.html        ← Lineage visualization
-└── accounts_sample.xlsx    ← Test dataset
+│   ├── base.html
+│   ├── index.html
+│   ├── analysis.html
+│   ├── quality.html
+│   ├── chat.html
+│   └── lineage.html
+├── screenshots/
+│   ├── dashboard.png
+│   ├── analysis.png
+│   ├── quality.png
+│   ├── chat.png
+│   └── lineage.png
+└── accounts_sample.xlsx
+```
 
 ---
 
