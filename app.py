@@ -22,10 +22,18 @@ def fetch_metadata():
         headers=headers
     )
     data = response.json()
-    columns = [
-        {"name": col["name"], "type": col["dataType"], "tags": [t["tagFQN"] for t in col.get("tags", [])]}
-        for col in data["columns"]
-    ]
+    columns = []
+    for col in data["columns"]:
+        tags = [t["tagFQN"] for t in col.get("tags", [])]
+        sensitivity = next((t.split(".")[-1] for t in tags if "DataSensitivity" in t), None)
+        tier = next((t.split(".")[-1] for t in tags if "DataTier" in t), None)
+        columns.append({
+            "name": col["name"],
+            "type": col["dataType"],
+            "tags": tags,
+            "sensitivity": sensitivity,
+            "tier": tier
+        })
     return data["name"], columns
 
 def ask_ai(prompt):
@@ -67,6 +75,29 @@ def analysis():
     excel_cols = session.get("columns", [])
     matched = [col for col in excel_cols if col.upper() in [c["name"].upper() for c in columns]]
     unmatched = [col for col in excel_cols if col.upper() not in [c["name"].upper() for c in columns]]
+
+    # PII Masking
+    preview_rows = session.get("rows", [])
+    masked_rows = []
+    for row in preview_rows:
+        masked_row = {}
+        for key, val in row.items():
+            if key.upper() in [p.upper() for p in pii_sensitive]:
+                masked_row[key] = "*** MASKED ***"
+            else:
+                masked_row[key] = val
+        masked_rows.append(masked_row)
+
+    return render_template("analysis.html",
+        table_name=table_name,
+        columns=columns,
+        pii_sensitive=pii_sensitive,
+        pii_nonsensitive=pii_nonsensitive,
+        preview_columns=session.get("columns", []),
+        preview_rows=masked_rows,
+        matched=matched,
+        unmatched=unmatched
+    )
 
     # PII Masking
     preview_rows = session.get("rows", [])

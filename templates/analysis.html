@@ -45,30 +45,39 @@
     <div class="card-title">PII Detection</div>
     <div class="card-subtitle">{{ pii_sensitive|length + pii_nonsensitive|length }} columns flagged · {{ pii_sensitive|length }} sensitive</div>
 
-    {% for col in pii_sensitive %}
-    <div class="pii-card sensitive">
+    {% for col in columns %}
+    {% if col.tags %}
+    <div class="pii-card {{ 'sensitive' if 'PII.Sensitive' in col.tags|join else 'nonsensitive' if 'PII.NonSensitive' in col.tags|join else 'safe' }}">
         <div class="pii-card-left">
-            <span style="font-size: 20px; color: #dc2626;">🛡</span>
+            <span style="font-size: 20px; color: {{ '#dc2626' if 'PII.Sensitive' in col.tags|join else '#d97706' }};">
+                {{ '🛡' if 'PII.Sensitive' in col.tags|join else '⚠' }}
+            </span>
             <div>
-                <div class="pii-col-name">{{ col }}</div>
-                <div class="pii-col-desc">Direct identifier · Could cause harm if exposed</div>
+                <div class="pii-col-name">{{ col.name }}</div>
+                <div class="pii-col-desc">
+                    {{ 'Direct identifier · Could cause harm if exposed' if 'PII.Sensitive' in col.tags|join else 'Quasi-identifier · Low risk but handle with care' }}
+                </div>
             </div>
         </div>
-        <span class="tag-sensitive">PII.Sensitive</span>
-    </div>
-    {% endfor %}
-
-    {% for col in pii_nonsensitive %}
-    <div class="pii-card nonsensitive">
-        <div class="pii-card-left">
-            <span style="font-size: 20px; color: #d97706;">⚠</span>
-            <div>
-                <div class="pii-col-name">{{ col }}</div>
-                <div class="pii-col-desc">Quasi-identifier · Low risk but handle with care</div>
-            </div>
+        <div style="display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end;">
+            {% if 'PII.Sensitive' in col.tags|join %}
+                <span class="tag-sensitive">PII.Sensitive</span>
+            {% elif 'PII.NonSensitive' in col.tags|join %}
+                <span class="tag-nonsensitive">PII.NonSensitive</span>
+            {% endif %}
+            {% if col.sensitivity %}
+                <span style="background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;">
+                    🔵 {{ col.sensitivity }}
+                </span>
+            {% endif %}
+            {% if col.tier %}
+                <span style="background: #f5f3ff; color: #7c3aed; border: 1px solid #ddd6fe; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;">
+                    ⭐ {{ col.tier }}
+                </span>
+            {% endif %}
         </div>
-        <span class="tag-nonsensitive">PII.NonSensitive</span>
     </div>
+    {% endif %}
     {% endfor %}
 </div>
 
