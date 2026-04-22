@@ -244,6 +244,24 @@ End your response with exactly this line: IMPACT_SCORE: X"""
 
     return {"analysis": ai_response, "score": score}
 
+@app.route("/column_scores")
+def column_scores():
+    table_name, columns = fetch_metadata()
+    profile = session.get("profile", {})
+    scores = {}
+    for col in columns:
+        score = 5  # base
+        tags = col["tags"]
+        name = col["name"].upper()
+        if any("PII.Sensitive" in t for t in tags): score += 3
+        if any("PII.NonSensitive" in t for t in tags): score += 1
+        if any(k in name for k in ["ID", "NUMBER", "ACCOUNT", "TAX", "SSN", "BALANCE"]): score += 1
+        if col["type"] in ["DECIMAL", "NUMERIC", "FLOAT", "DOUBLE"]: score += 1
+        null_count = profile.get(col["name"], {}).get("null_count", 0)
+        if null_count == 0: score += 1
+        scores[col["name"]] = min(score, 10)
+    return {"scores": scores}
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=False)

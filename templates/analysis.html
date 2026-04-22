@@ -36,6 +36,18 @@
     </div>
 </div>
 
+
+<!-- Column Impact Scores -->
+<div class="card">
+    <div class="card-label">⚡ IMPACT SCORES</div>
+    <div class="card-title">Column Criticality</div>
+    <div class="card-subtitle">AI-calculated risk score per column (1–10)</div>
+
+    <div id="scores-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap:12px; margin-top:16px;">
+        <div style="text-align:center; color:#9ca3af; padding:20px;">Loading scores...</div>
+    </div>
+</div>
+
 <!-- PII Detection -->
 <div class="card">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
@@ -116,3 +128,31 @@
 </div>
 
 {% endblock %}
+{% block scripts %}
+<script>
+fetch('/column_scores')
+    .then(r => r.json())
+    .then(data => {
+        const grid = document.getElementById('scores-grid');
+        const scores = data.scores;
+        grid.innerHTML = Object.entries(scores).map(([col, score]) => {
+            const color = score >= 8 ? '#ef4444' : score >= 5 ? '#f59e0b' : '#22c55e';
+            const label = score >= 8 ? 'Critical' : score >= 5 ? 'Medium' : 'Low';
+            return `
+            <div style="background:#f9fafb; border:1px solid #e8e8ed; border-radius:10px; padding:14px; text-align:center;">
+                <div style="font-size:12px; font-weight:600; color:#1a1a2e; margin-bottom:8px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${col}</div>
+                <div style="position:relative; width:64px; height:64px; margin:0 auto 8px;">
+                    <svg viewBox="0 0 36 36" style="width:64px; height:64px; transform:rotate(-90deg);">
+                        <circle cx="18" cy="18" r="15.9" fill="none" stroke="#e8e8ed" stroke-width="3"/>
+                        <circle cx="18" cy="18" r="15.9" fill="none" stroke="${color}" stroke-width="3"
+                            stroke-dasharray="${score * 10} 100" stroke-linecap="round"/>
+                    </svg>
+                    <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:14px; font-weight:700; color:${color};">${score}</div>
+                </div>
+                <div style="font-size:11px; font-weight:600; color:${color};">${label}</div>
+            </div>`;
+        }).join('');
+    });
+</script>
+{% endblock %}
+
