@@ -78,6 +78,52 @@
     </div>
 </div>
 
+<!-- Column Lineage -->
+<div class="card">
+    <div class="card-label" style="margin-bottom: 6px;">🔗 COLUMN LINEAGE</div>
+    <div class="card-title" style="margin-bottom: 4px;">Column-level Dependencies</div>
+    <div class="card-subtitle">Trace individual column flow across tables</div>
+
+    {% if col_lineage %}
+        {% for edge in col_lineage %}
+        <div style="margin-top: 16px; background: #f9fafb; border: 1px solid #e8e8ed; border-radius: 10px; padding: 16px;">
+            <div style="font-size: 12px; color: #6b7280; margin-bottom: 10px;">
+                <span style="font-weight: 600; color: #1a1a2e;">{{ edge.from.split('.')[-1] }}</span>
+                <span style="color: #6366f1; margin: 0 8px;">→</span>
+                <span style="font-weight: 600; color: #1a1a2e;">{{ edge.to.split('.')[-1] }}</span>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                {% for col in edge.columns %}
+                <span style="background: #eef2ff; color: #6366f1; border: 1px solid #c7d2fe; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 500;">
+                    {{ col }}
+                </span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+    <!-- No column lineage — show all columns as tracked -->
+    <div style="margin-top: 16px;">
+        <div style="font-size: 13px; color: #6b7280; margin-bottom: 12px;">Columns tracked in <strong>{{ table_name }}</strong>:</div>
+        <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+            {% for col in columns %}
+            <div style="background: #f9fafb; border: 1px solid #e8e8ed; border-radius: 8px; padding: 8px 12px; text-align: center; min-width: 120px;">
+                <div style="font-size: 12px; font-weight: 600; color: #1a1a2e;">{{ col.name }}</div>
+                <div style="font-size: 11px; color: #9ca3af; margin-top: 2px;">{{ col.type }}</div>
+                {% if col.tags %}
+                <div style="margin-top: 6px;">
+                    {% if 'PII.Sensitive' in col.tags|join %}
+                    <span style="background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; padding: 2px 6px; border-radius: 4px; font-size: 10px;">PII</span>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
 <!-- Table Details -->
 <div class="card">
     <div class="card-label" style="margin-bottom: 6px;">⊞ TABLE INFO</div>

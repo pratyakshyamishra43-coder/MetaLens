@@ -164,19 +164,35 @@ def lineage():
     if not session.get("filename"):
         return redirect(url_for("index"))
     table_name, columns = fetch_metadata()
+    fqn = session.get("selected_fqn", "ACME_MYSQL.default.FINANCIAL_STAGING.ACCOUNTS")
+    
     lineage_response = requests.get(
-        f"https://sandbox.open-metadata.org/api/v1/lineage/table/name/{FQN}?upstreamDepth=1&downstreamDepth=1",
+        f"https://sandbox.open-metadata.org/api/v1/lineage/table/name/{fqn}?upstreamDepth=1&downstreamDepth=1",
         headers=headers
     )
     lineage_data = lineage_response.json()
     nodes = lineage_data.get("nodes", [])
     upstream = lineage_data.get("upstreamEdges", [])
     downstream = lineage_data.get("downstreamEdges", [])
+
+    # Column-level lineage
+    col_lineage = []
+    for edge in upstream + downstream:
+        cols = edge.get("columns", [])
+        if cols:
+            col_lineage.append({
+                "from": edge.get("fromEntity", {}).get("fqn", "Unknown"),
+                "to": edge.get("toEntity", {}).get("fqn", "Unknown"),
+                "columns": cols
+            })
+
     return render_template("lineage.html",
         table_name=table_name,
+        columns=columns,
         nodes=nodes,
         upstream=upstream,
         downstream=downstream,
+        col_lineage=col_lineage,
         filename=session.get("filename")
     )
 
