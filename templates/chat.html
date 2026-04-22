@@ -11,6 +11,31 @@
     </div>
 </div>
 
+<!-- IMPACT ANALYZER -->
+<div class="card" style="border: 2px solid #e0e7ff; background: linear-gradient(135deg, #fafafe, #f5f3ff);">
+    <div class="card-label" style="margin-bottom: 8px;">💥 IMPACT ANALYZER</div>
+    <div class="card-title" style="margin-bottom: 4px;">What breaks if I delete this column?</div>
+    <div class="card-subtitle">Select a column to see downstream impact, PII risk, and AI recommendations</div>
+
+    <div style="display: flex; gap: 12px; align-items: center; margin-top: 16px;">
+        <select id="impact-column" style="flex:1; padding: 10px 14px; border: 1px solid #e8e8ed; border-radius: 8px; font-size: 13px; font-family: Inter, sans-serif; outline: none; background: white; color: #1a1a2e;">
+            <option value="">Select a column...</option>
+            {% for col in preview_columns %}
+            <option value="{{ col }}">{{ col }}</option>
+            {% endfor %}
+        </select>
+        <button class="btn-purple" onclick="analyzeImpact()" style="white-space: nowrap;">⚡ Analyze Impact</button>
+    </div>
+
+    <div id="impact-result" style="display:none; margin-top: 20px;">
+        <div id="impact-score-bar" style="margin-bottom: 16px;"></div>
+        <div id="impact-content" class="chat-bubble-ai" style="background: #fafafe; border-color: #e0e7ff;"></div>
+    </div>
+    <div id="impact-loading" style="display:none; margin-top: 16px; text-align:center; color: #6366f1; font-size: 13px;">
+        ✦ Analyzing impact...
+    </div>
+</div>
+
 <!-- Quick Questions -->
 <div class="card">
     <div class="card-label" style="margin-bottom: 12px;">⚡ QUICK ACTIONS</div>
@@ -28,21 +53,17 @@
     <div class="card-label" style="margin-bottom: 16px;">💬 CONVERSATION</div>
 
     {% if response %}
-    <!-- User bubble -->
     <div style="display: flex; justify-content: flex-end; margin-bottom: 16px;">
         <div style="background: #6366f1; color: white; border-radius: 12px 12px 2px 12px; padding: 12px 16px; max-width: 60%; font-size: 14px;">
             {{ request.form.get('question', '') }}
         </div>
         <div style="width: 32px; height: 32px; border-radius: 50%; background: #f3f4f6; display: flex; align-items: center; justify-content: center; margin-left: 10px; font-size: 14px; flex-shrink: 0;">👤</div>
     </div>
-
-    <!-- AI bubble -->
     <div style="display: flex; align-items: flex-start; gap: 10px; margin-bottom: 20px;">
         <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #8b5cf6); display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0;">✦</div>
         <div class="chat-bubble-ai">{{ response }}</div>
     </div>
     {% else %}
-    <!-- Empty state -->
     <div style="text-align: center; padding: 48px 0; color: #9ca3af;">
         <div style="font-size: 40px; margin-bottom: 12px;">✦</div>
         <div style="font-size: 15px; font-weight: 600; color: #374151; margin-bottom: 6px;">Ask the Copilot</div>
@@ -50,22 +71,13 @@
     </div>
     {% endif %}
 
-    <!-- Input -->
     <form method="POST" style="display: flex; gap: 10px; align-items: center; border-top: 1px solid #f3f4f6; padding-top: 16px;">
         <span style="color: #6366f1; font-size: 16px;">✦</span>
-        <input
-            class="chat-input"
-            type="text"
-            name="question"
-            id="question-input"
-            placeholder="Ask the copilot..."
-            required
-        >
+        <input class="chat-input" type="text" name="question" id="question-input" placeholder="Ask the copilot..." required>
         <button class="btn-purple" type="submit" style="white-space: nowrap;">Send →</button>
     </form>
 </div>
 
-<!-- Navigation -->
 <div style="display: flex; gap: 12px;">
     <a href="/lineage"><button class="btn-purple">Next: Lineage →</button></a>
     <a href="/quality"><button class="btn-secondary">← Back to Quality</button></a>
@@ -77,6 +89,39 @@
 <script>
     function setQuestion(q) {
         document.getElementById('question-input').value = q;
+    }
+
+    async function analyzeImpact() {
+        const col = document.getElementById('impact-column').value;
+        if (!col) { alert('Please select a column first.'); return; }
+
+        document.getElementById('impact-loading').style.display = 'block';
+        document.getElementById('impact-result').style.display = 'none';
+
+        const res = await fetch('/impact', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: `column=${encodeURIComponent(col)}`
+        });
+        const data = await res.json();
+
+        document.getElementById('impact-loading').style.display = 'none';
+
+        // Score bar
+        const score = data.score || 5;
+        const color = score >= 8 ? '#ef4444' : score >= 5 ? '#f59e0b' : '#22c55e';
+        const label = score >= 8 ? 'HIGH RISK' : score >= 5 ? 'MEDIUM RISK' : 'LOW RISK';
+        document.getElementById('impact-score-bar').innerHTML = `
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
+                <span style="font-size:12px; font-weight:700; color:${color};">⚠ ${label}</span>
+                <span style="font-size:12px; color:#6b7280;">Impact Score: <strong style="color:${color};">${score}/10</strong></span>
+                <div style="flex:1; height:8px; background:#f3f4f6; border-radius:4px;">
+                    <div style="width:${score*10}%; height:100%; background:${color}; border-radius:4px; transition: width 0.5s;"></div>
+                </div>
+            </div>
+        `;
+        document.getElementById('impact-content').innerText = data.analysis;
+        document.getElementById('impact-result').style.display = 'block';
     }
 </script>
 {% endblock %}

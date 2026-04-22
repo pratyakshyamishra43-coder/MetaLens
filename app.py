@@ -116,16 +116,17 @@ def chat():
     if request.method == "POST":
         question = request.form.get("question")
         table_name, columns = fetch_metadata()
-        prompt = f"""
-You are a data analyst assistant for MetaLens.
+        prompt = f"""You are a data analyst assistant for MetaLens.
 Table: {table_name}
 Columns: {json.dumps(columns)}
 Excel Data Profile: {json.dumps(session.get("profile", {}))}
 User question: {question}
-Answer concisely and helpfully.
-"""
+Answer concisely and helpfully."""
         response = ask_ai(prompt)
-    return render_template("chat.html", response=response)
+    return render_template("chat.html", 
+        response=response,
+        preview_columns=session.get("columns", [])
+    )
 
 @app.route("/lineage")
 def lineage():
@@ -172,6 +173,45 @@ def select_table():
 def reset_table():
     session.pop("selected_fqn", None)
     return redirect(url_for("index"))
+
+@app.route("/impact", methods=["POST"])
+def impact():
+    column = request.form.get("column")
+    table_name, columns = fetch_metadata()
+    col_meta = next((c for c in columns if c["name"].upper() == column.upper()), None)
+    tags = col_meta["tags"] if col_meta else []
+    is_pii = any("PII.Sensitive" in t for t in tags)
+
+    prompt = f"""You are a data governance expert.
+Table: {table_name}
+Column being deleted: {column}
+Column metadata: {col_meta}
+All columns: {[c['name'] for c in columns]}
+PII Sensitive: {is_pii}
+
+Answer these 4 things concisely:
+1. What downstream processes or reports likely depend on this column?
+2. What data quality issues will arise if this column is removed?
+3. What compliance/PII risks exist?
+4. Your recommendation: should this column be deleted, masked, or kept?
+
+Also give an impact score from 1-10 (10 = most critical).
+End your response with exactly this line: IMPACT_SCORE: X"""
+
+    ai_response = ask_ai(prompt)
+    
+    # Extract score
+    score = 5
+    for line in ai_response.split('\n'):
+        if 'IMPACT_SCORE:' in line:
+            try:
+                score = int(line.split(':')[1].strip())
+            except:
+                score = 5
+            ai_response = ai_response.replace(line, '').strip()
+            break
+
+    return {"analysis": ai_response, "score": score}
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
