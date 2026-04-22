@@ -1,46 +1,171 @@
-# MetaLens
-MetaLens — Excel + AI + OpenMetadata Assistant
-> Upload an Excel file → AI explains your data, flags PII, and shows what breaks if you modify it.
+# 🔍 MetaLens — AI Data Governance Copilot
+
+> Upload Excel → OpenMetadata flags PII → AI explains what breaks → Data quality scored → Full lineage shown.
+> **What takes a data steward 3 hours now takes 30 seconds.**
 
 Built for the **WeMakeDevs x OpenMetadata Hackathon (Apr 17–26, 2026)**
 
-**##Problem**
+🔗 **Live Demo:** [metalens-production.up.railway.app](https://metalens-production.up.railway.app)
+📦 **GitHub:** [pratyakshyamishra43-coder/MetaLens](https://github.com/pratyakshyamishra43-coder/MetaLens)
+
+---
+
+## 🚨 The Problem
+
 Data teams work with Excel files daily but have no easy way to:
 - Know which columns contain sensitive (PII) data
-- Understand what downstream pipelines depend on a column
+- Understand what downstream pipelines break if a column is modified
 - Get a plain-English explanation of what the data means
-  
-****##Solution**
-MetaLens connects your Excel file to OpenMetadata's governance layer and uses AI to:
-- **Flag PII columns** automatically
-- **Show lineage** — what breaks if you delete/modify a column
-- **Answer questions** about your data in plain English
+- Assess data quality without writing custom scripts
+- Generate compliance reports for GDPR/HIPAA audits
 
+---
 
-**##  Core Flow**
-Upload Excel → Parse columns (pandas) → Query OpenMetadata API → Combine context → Send to AI → Show results
+## ✅ The Solution
 
+MetaLens connects your Excel file to OpenMetadata's governance layer and uses AI to answer all of this instantly.
 
-**## Tech Stack**
-| Layer | Tech |
-| Backend | Python, Flask |
+![Dashboard Screenshot](screenshots/dashboard.png)
+
+---
+
+## 🎯 Core Demo Flow
+1. Upload any `.xlsx` file on the dashboard
+2. MetaLens matches your columns to OpenMetadata tables
+3. PII columns are flagged and masked automatically
+4. AI explains your data, scores quality, and shows lineage
+5. Ask follow-up questions in the AI Chat
+
+---
+
+## ✨ Features
+
+### ✅ Shipped
+| Feature | Description |
+|---|---|
+| 🛡 PII Detection | Auto-flags Sensitive & NonSensitive columns from OpenMetadata tags |
+| 🔒 PII Masking | Sensitive column values masked as `*** MASKED ***` in preview |
+| 🤖 AI Copilot Chat | Ask questions about your data in plain English |
+| 📊 Data Quality Score | Circular score (0–100) with null, PII risk & completeness breakdown |
+| 🔗 Lineage View | Upstream/downstream table dependencies from OpenMetadata |
+| 🔍 Table Search | Search any table across OpenMetadata catalog live |
+| 🌐 Live Deployment | Hosted on Railway, accessible via public URL |
+
+### 🔄 In Progress (Apr 22–25)
+| Feature | Description |
+|---|---|
+| 💥 Column Impact Analyzer | "What breaks if I delete this column?" dedicated input + impact score (1–10) |
+| 🏷 DataSensitivity Badges | OpenMetadata Tags API — DataSensitivity & DataTier badges per column |
+| 🔗 Column-level Lineage | Trace individual column dependencies across tables |
+| ✅ Metadata Completeness | Check how complete your OpenMetadata table descriptions are |
+| 🧩 Smart Table Matcher | Auto-match uploaded Excel columns to best OpenMetadata table |
+| 📄 PDF Export | Download full analysis as a professional PDF report |
+| ✏️ Table Description Editor | Write descriptions back to OpenMetadata directly from MetaLens |
+| 📋 Compliance Report | Auto-generate GDPR/HIPAA compliance report from PII findings |
+| 🔎 Bulk PII Scanner | Scan multiple tables at once for PII exposure |
+
+---
+
+## 🖼 Screenshots
+
+| Page | Screenshot |
+|---|---|
+| Dashboard | `screenshots/dashboard.png` |
+| Analysis + PII | `screenshots/analysis.png` |
+| Data Quality | `screenshots/quality.png` |
+| AI Chat | `screenshots/chat.png` |
+| Lineage | `screenshots/lineage.png` |
+
+---
+
+## 🏗 Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Backend | Python 3, Flask |
 | Excel Parsing | pandas, openpyxl |
-| Metadata | OpenMetadata REST API |
-| AI | API |
-| Frontend | HTML + Flask (or React) |
+| Metadata | OpenMetadata REST API (sandbox) |
+| AI | Groq API — LLaMA 3.3 70B |
+| Frontend | Jinja2, custom CSS, Inter font |
+| Deployment | Railway (gunicorn) |
 
+---
 
-**##  Features**
--  PII auto-detection + warnings
--  "What breaks if I delete this column?" impact analysis
--  Lineage visualization
--  Chat Q&A with your data
--  Data quality score
+## 🚀 Running Locally
 
-**## Getting Started**
-*Setup instructions coming soon*
+```bash
+# Clone the repo
+git clone https://github.com/pratyakshyamishra43-coder/MetaLens.git
+cd MetaLens
 
-**## Project Structure**
-*To be updated as files are added*
+# Install dependencies
+pip install -r requirements.txt
 
-  
+# Set up environment variables
+cp .env.example .env
+# Add your OPENMETADATA_TOKEN and GROQ_API_KEY to .env
+
+# Run
+python app.py
+# Visit http://127.0.0.1:5000
+```
+
+---
+
+## 🔑 Environment Variables
+OPENMETADATA_TOKEN=your_90_day_personal_access_token
+GROQ_API_KEY=your_groq_api_key
+
+---
+
+## 📁 Project Structure
+MetaLens/
+├── app.py                  ← Flask app, 5 routes
+├── fetch_metadata.py       ← OpenMetadata API client
+├── parse_excel.py          ← Excel parsing with pandas
+├── pipeline.py             ← Core pipeline combining metadata + AI
+├── requirements.txt
+├── Procfile                ← gunicorn for Railway
+├── static/
+│   └── style.css           ← Global CSS, light theme
+├── templates/
+│   ├── base.html           ← Sidebar + topbar layout
+│   ├── index.html          ← Dashboard
+│   ├── analysis.html       ← Column matching + PII cards
+│   ├── quality.html        ← Data quality score
+│   ├── chat.html           ← AI chat copilot
+│   └── lineage.html        ← Lineage visualization
+└── accounts_sample.xlsx    ← Test dataset
+
+---
+
+## 🧠 How OpenMetadata Integration Works
+
+MetaLens uses the OpenMetadata REST API to:
+- Fetch table schema and column-level PII tags (`PII.Sensitive`, `PII.NonSensitive`)
+- Pull upstream/downstream lineage edges
+- Search across all tables in the catalog live
+- Write table descriptions back to OpenMetadata (coming Apr 24)
+
+Active demo table: `ACME_MYSQL.default.FINANCIAL_STAGING.ACCOUNTS`
+
+---
+
+## 🗓 Hackathon Build Log
+
+| Date | Shipped |
+|---|---|
+| Apr 17–18 | Project setup, OpenMetadata auth, fetch_metadata.py |
+| Apr 19–20 | Flask app, 5 pages, full UI, pipeline.py |
+| Apr 21 | Railway deployment, table search, PII masking |
+| Apr 22 | Column impact analyzer, DataSensitivity badges |
+| Apr 23 | Column lineage, metadata completeness, smart matcher |
+| Apr 24 | PDF export, description editor, compliance report |
+| Apr 25 | Bulk PII scanner, demo video, final submission |
+
+---
+
+## 👨‍💻 Built By
+
+**Pratyakshya Mishra ** — First year CS undergrad, India
+Hackathon: WeMakeDevs x OpenMetadata | April 17–26, 2026 
