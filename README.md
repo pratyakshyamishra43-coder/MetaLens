@@ -92,7 +92,7 @@ MetaLens connects your Excel file to OpenMetadata's governance layer and uses AI
 ![Metadata Completeness](screenshots/completeness.png)
 
 **Smart Match**
-![Smart Match with PDF Export](screenshots/smartmatch.png)
+![Smart Match + PDF Export](screenshots/smartmatch.png)
 
 
 ---
