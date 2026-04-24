@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">Smart Table Matcher</h1>
+  <p class="page-subtitle">Mapping your Excel columns to <strong>{{ table_name }}</strong></p>
+</div>
+
+<!-- Stats row -->
+<div style="display:grid; grid-template-columns:repeat(3,1fr); gap:1.25rem; margin-bottom:2rem;">
+  <div class="card" style="text-align:center; padding:1.5rem;">
+    <div style="font-size:2rem; font-weight:700; color:#6366f1;">{{ matches|length }}</div>
+    <div style="color:var(--text-muted); font-size:0.9rem;">Matched Columns</div>
+  </div>
+  <div class="card" style="text-align:center; padding:1.5rem;">
+    <div style="font-size:2rem; font-weight:700; color:#f59e0b;">{{ unmatched_excel|length }}</div>
+    <div style="color:var(--text-muted); font-size:0.9rem;">Unmatched</div>
+  </div>
+  <div class="card" style="text-align:center; padding:1.5rem;">
+    <div style="font-size:2rem; font-weight:700; color:#22c55e;">
+      {{ ((matches|length / excel_cols|length) * 100)|round|int }}%
+    </div>
+    <div style="color:var(--text-muted); font-size:0.9rem;">Match Rate</div>
+  </div>
+</div>
+
+<!-- Matched columns -->
+{% if matches %}
+<div class="card" style="margin-bottom:1.5rem;">
+  <h3 style="margin-bottom:1rem;">✅ Matched Columns</h3>
+  <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
+    <thead>
+      <tr style="border-bottom:2px solid var(--border);">
+        <th style="text-align:left; padding:0.6rem;">Excel Column</th>
+        <th style="text-align:left; padding:0.6rem;">→ Metadata Column</th>
+        <th style="text-align:center; padding:0.6rem;">Confidence</th>
+        <th style="text-align:left; padding:0.6rem;">Type</th>
+        <th style="text-align:left; padding:0.6rem;">Tags</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for m in matches %}
+      <tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:0.6rem; font-family:monospace;">{{ m.excel_col }}</td>
+        <td style="padding:0.6rem; font-family:monospace; color:#6366f1;">{{ m.meta_col }}</td>
+        <td style="text-align:center; padding:0.6rem;">
+          <span style="
+            background:{% if m.confidence == 'High' %}#dcfce7; color:#16a34a{% else %}#fef3c7; color:#d97706{% endif %};
+            padding:0.2rem 0.6rem; border-radius:999px; font-size:0.8rem; font-weight:600;">
+            {{ m.confidence }} ({{ m.score }}%)
+          </span>
+        </td>
+        <td style="padding:0.6rem; color:var(--text-muted);">{{ m.type }}</td>
+        <td style="padding:0.6rem;">
+          {% for tag in m.tags %}
+            <span style="background:#ede9fe; color:#7c3aed; border-radius:4px; padding:0.15rem 0.4rem; font-size:0.75rem; margin-right:4px;">{{ tag.split('.')[-1] }}</span>
+          {% endfor %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<!-- Unmatched + AI suggestions -->
+{% if unmatched_excel %}
+<div class="card">
+  <h3 style="margin-bottom:1rem;">🤖 AI Suggestions for Unmatched Columns</h3>
+  <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
+    <thead>
+      <tr style="border-bottom:2px solid var(--border);">
+        <th style="text-align:left; padding:0.6rem;">Excel Column</th>
+        <th style="text-align:left; padding:0.6rem;">AI Suggested Match</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for col in unmatched_excel %}
+      <tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:0.6rem; font-family:monospace;">{{ col }}</td>
+        <td style="padding:0.6rem;">
+          {% set suggestion = ai_suggestions.get(col, "—") %}
+          {% if suggestion == "No match" or suggestion == "—" %}
+            <span style="color:var(--text-muted);">No match found</span>
+          {% else %}
+            <span style="color:#6366f1; font-family:monospace;">{{ suggestion }}</span>
+            <span style="margin-left:0.5rem; font-size:0.75rem; color:#f59e0b;">🤖 AI suggested</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock %}
