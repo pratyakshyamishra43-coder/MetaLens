@@ -88,6 +88,12 @@ MetaLens connects your Excel file to OpenMetadata's governance layer and uses AI
 **Lineage View**
 ![Lineage](screenshots/lineage.png) ![Column Level Lineage](screenshots/ColumnLineage.png)
 
+**Metadata Completeness**
+![Metadata Completeness](screenshots/completeness.png)
+
+**Smart Match**
+![Smart Match](screenshots/smartmatch.png)
+
 
 ---
 
