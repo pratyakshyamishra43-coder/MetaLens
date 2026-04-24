@@ -278,9 +278,7 @@ def column_scores():
         scores[col["name"]] = min(score, 10)
     return {"scores": scores}
 
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=False)
+
 
     # ── Task 8: Metadata Completeness Checker ──────────────────────────────────
 @app.route("/completeness")
@@ -392,3 +390,8 @@ No explanation, no markdown."""
         excel_cols=excel_cols,
         meta_col_names=meta_col_names
     )
+
+
+    if __name__ == "__main__":;
+    port = int(os.environ.get("PORT", 5000));
+    app.run(host="0.0.0.0", port=port, debug=True);
