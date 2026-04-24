@@ -281,3 +281,114 @@ def column_scores():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=False)
+
+    # ── Task 8: Metadata Completeness Checker ──────────────────────────────────
+@app.route("/completeness")
+def completeness():
+    if not session.get("filename"):
+        return redirect(url_for("index"))
+    table_name, columns = fetch_metadata()
+
+    # Fetch raw data to check descriptions
+    fqn = session.get("selected_fqn", "ACME_MYSQL.default.FINANCIAL_STAGING.ACCOUNTS")
+    raw = requests.get(
+        f"https://sandbox.open-metadata.org/api/v1/tables/name/{fqn}?fields=columns,tags,owners,description",
+        headers=headers
+    ).json()
+
+    col_scores = []
+    for col in raw["columns"]:
+        score = 0
+        checks = {}
+
+        checks["has_description"] = bool(col.get("description"))
+        checks["has_tags"] = len(col.get("tags", [])) > 0
+        checks["has_data_type"] = bool(col.get("dataType"))
+        checks["has_sensitivity"] = any("DataSensitivity" in t["tagFQN"] for t in col.get("tags", []))
+
+        score = sum(checks.values()) * 25  # 0, 25, 50, 75, or 100
+
+        col_scores.append({
+            "name": col["name"],
+            "score": score,
+            "checks": checks,
+            "tags": [t["tagFQN"] for t in col.get("tags", [])]
+        })
+
+    table_completeness = round(sum(c["score"] for c in col_scores) / len(col_scores)) if col_scores else 0
+    table_description = raw.get("description", "")
+
+    return render_template("completeness.html",
+        table_name=table_name,
+        col_scores=col_scores,
+        table_completeness=table_completeness,
+        table_description=table_description
+    )
+
+
+# ── Task 9: Smart Table Matcher ────────────────────────────────────────────
+@app.route("/smart_match")
+def smart_match():
+    if not session.get("filename"):
+        return redirect(url_for("index"))
+
+    table_name, columns = fetch_metadata()
+    excel_cols = session.get("columns", [])
+    meta_col_names = [c["name"] for c in columns]
+
+    def similarity(a, b):
+        a, b = a.upper().replace("_", ""), b.upper().replace("_", "")
+        if a == b: return 100
+        if a in b or b in a: return 80
+        # character overlap score
+        common = sum(1 for ch in a if ch in b)
+        return round((common / max(len(a), len(b))) * 60)
+
+    matches = []
+    unmatched_excel = []
+
+    for ecol in excel_cols:
+        best_match = None
+        best_score = 0
+        for mcol in columns:
+            s = similarity(ecol, mcol["name"])
+            if s > best_score:
+                best_score = s
+                best_match = mcol
+        if best_score >= 60:
+            matches.append({
+                "excel_col": ecol,
+                "meta_col": best_match["name"],
+                "score": best_score,
+                "tags": best_match["tags"],
+                "type": best_match["type"],
+                "confidence": "High" if best_score >= 80 else "Medium"
+            })
+        else:
+            unmatched_excel.append(ecol)
+
+    # AI suggestions for unmatched columns
+    ai_suggestions = {}
+    if unmatched_excel:
+        prompt = f"""You are a data mapping expert.
+Excel columns with no match in the metadata table: {unmatched_excel}
+Available OpenMetadata columns: {meta_col_names}
+
+For each unmatched Excel column, suggest the closest OpenMetadata column it might correspond to, or say "No match" if none fits.
+Respond ONLY as JSON like: {{"EXCEL_COL": "META_COL or No match"}}
+No explanation, no markdown."""
+        try:
+            raw_ai = ask_ai(prompt)
+            raw_ai = raw_ai.replace("```json", "").replace("```", "").strip()
+            ai_suggestions = json.loads(raw_ai)
+        except:
+            ai_suggestions = {col: "Could not determine" for col in unmatched_excel}
+
+    return render_template("smart_match.html",
+        table_name=table_name,
+        matches=matches,
+        unmatched_excel=unmatched_excel,
+        ai_suggestions=ai_suggestions,
+        excel_cols=excel_cols,
+        meta_col_names=meta_col_names
+    )
