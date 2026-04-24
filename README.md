@@ -71,27 +71,35 @@ MetaLens connects your Excel file to OpenMetadata's governance layer and uses AI
 
 **1. Dashboard — Upload your Excel file to begin analysis**
 ![Dashboard](screenshots/dashboard.png)
+---
 
 **2. Analysis — Columns matched to OpenMetadata; PII auto-detected and masked**
 ![Analysis](screenshots/analysis.png) ![PII](screenshots/analysis1.png)
+---
 
 **3. Impact Scores — Every column scored 1–10 for deletion risk**
 ![Column Impact Score](screenshots/columnimpactscore.png)
+---
 
 **4. Data Quality — Null penalties + PII exposure rolled into a single score**
 ![Quality](screenshots/quality.png)
+---
 
 **5. AI Chat — Ask anything about your data; AI answers using metadata + profile**
 ![Chat](screenshots/chat.png) ![AI insights](screenshots/AIinsights.png)
+---
 
 **6. Risk Score — "What breaks if I delete this column?" answered in seconds**
 ![Risk Score](screenshots/riskscore.png)
+---
 
 **7. Lineage — See where your data comes from and what depends on it**
 ![Lineage](screenshots/lineage.png) ![Column Level Lineage](screenshots/ColumnLineage.png)
+---
 
 **8. Metadata Completeness — Every column graded on description, tags, type, sensitivity**
 ![Metadata Completeness](screenshots/completeness.png)
+---
 
 **9. Smart Match + PDF Export — Excel columns mapped to metadata; full report downloaded in one click**
 ![Smart Match + PDF Export](screenshots/smartmatch.png)
