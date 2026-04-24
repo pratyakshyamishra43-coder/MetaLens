@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">Metadata Completeness</h1>
+  <p class="page-subtitle">How well documented is <strong>{{ table_name }}</strong>?</p>
+</div>
+
+<!-- Overall score ring -->
+<div style="display:flex; gap:2rem; margin-bottom:2rem; flex-wrap:wrap;">
+  <div class="card" style="flex:0 0 220px; text-align:center; padding:2rem;">
+    <svg viewBox="0 0 120 120" width="120" height="120" style="margin:auto; display:block;">
+      <circle cx="60" cy="60" r="50" fill="none" stroke="#e5e7eb" stroke-width="10"/>
+      <circle cx="60" cy="60" r="50" fill="none"
+        stroke="{% if table_completeness >= 75 %}#22c55e{% elif table_completeness >= 40 %}#f59e0b{% else %}#ef4444{% endif %}"
+        stroke-width="10"
+        stroke-dasharray="{{ (table_completeness / 100) * 314 }} 314"
+        stroke-linecap="round"
+        transform="rotate(-90 60 60)"/>
+      <text x="60" y="65" text-anchor="middle" font-size="22" font-weight="bold" fill="currentColor">{{ table_completeness }}%</text>
+    </svg>
+    <div style="margin-top:1rem; font-weight:600; font-size:0.95rem;">Overall Completeness</div>
+    {% if table_description %}
+      <div style="margin-top:0.5rem; font-size:0.8rem; color:var(--text-muted);">{{ table_description[:80] }}...</div>
+    {% else %}
+      <div style="margin-top:0.5rem; font-size:0.8rem; color:#ef4444;">⚠ No table description</div>
+    {% endif %}
+  </div>
+
+  <!-- Legend -->
+  <div class="card" style="flex:1; padding:1.5rem;">
+    <h3 style="margin-bottom:1rem;">Scoring Criteria</h3>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
+      <div>✅ <strong>Has Description</strong> — +25pts</div>
+      <div>🏷️ <strong>Has Tags</strong> — +25pts</div>
+      <div>🔢 <strong>Has Data Type</strong> — +25pts</div>
+      <div>🔒 <strong>Has Sensitivity Label</strong> — +25pts</div>
+    </div>
+    <div style="margin-top:1.5rem; display:flex; gap:1.5rem; font-size:0.85rem;">
+      <span style="color:#22c55e;">● High (75–100)</span>
+      <span style="color:#f59e0b;">● Medium (40–74)</span>
+      <span style="color:#ef4444;">● Low (0–39)</span>
+    </div>
+  </div>
+</div>
+
+<!-- Per-column breakdown -->
+<div class="card">
+  <h3 style="margin-bottom:1.25rem;">Column Breakdown</h3>
+  <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
+    <thead>
+      <tr style="border-bottom:2px solid var(--border);">
+        <th style="text-align:left; padding:0.6rem;">Column</th>
+        <th style="text-align:center; padding:0.6rem;">Score</th>
+        <th style="text-align:center; padding:0.6rem;">Description</th>
+        <th style="text-align:center; padding:0.6rem;">Tags</th>
+        <th style="text-align:center; padding:0.6rem;">Data Type</th>
+        <th style="text-align:center; padding:0.6rem;">Sensitivity</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for col in col_scores %}
+      <tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:0.6rem; font-weight:500;">{{ col.name }}</td>
+        <td style="padding:0.6rem; text-align:center;">
+          <span style="
+            background:{% if col.score >= 75 %}#dcfce7; color:#16a34a{% elif col.score >= 40 %}#fef3c7; color:#d97706{% else %}#fee2e2; color:#dc2626{% endif %};
+            padding:0.2rem 0.6rem; border-radius:999px; font-weight:600; font-size:0.82rem;">
+            {{ col.score }}%
+          </span>
+        </td>
+        <td style="text-align:center; padding:0.6rem;">{{ "✅" if col.checks.has_description else "❌" }}</td>
+        <td style="text-align:center; padding:0.6rem;">{{ "✅" if col.checks.has_tags else "❌" }}</td>
+        <td style="text-align:center; padding:0.6rem;">{{ "✅" if col.checks.has_data_type else "❌" }}</td>
+        <td style="text-align:center; padding:0.6rem;">{{ "✅" if col.checks.has_sensitivity else "❌" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
