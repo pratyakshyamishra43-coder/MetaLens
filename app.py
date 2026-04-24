@@ -391,6 +391,139 @@ No explanation, no markdown."""
         meta_col_names=meta_col_names
     )
 
+
+from flask import send_file
+from reportlab.lib.pagesizes import A4
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib.units import cm
+import io
+
+@app.route("/export_pdf")
+def export_pdf():
+    if not session.get("filename"):
+        return redirect(url_for("index"))
+
+    table_name, columns = fetch_metadata()
+    profile = session.get("profile", {})
+    filename = session.get("filename", "report")
+
+    # PII counts
+    pii_sensitive = [c for c in columns if any("PII.Sensitive" in t for t in c["tags"])]
+    pii_nonsensitive = [c for c in columns if any("PII.NonSensitive" in t for t in c["tags"])]
+
+    # Quality score (same logic as /quality)
+    total_nulls = sum(v["null_count"] for v in profile.values())
+    pii_penalty = len(pii_sensitive) * 10
+    null_penalty = min(total_nulls * 5, 30)
+    quality_score = max(100 - pii_penalty - null_penalty, 0)
+
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4,
+                            rightMargin=2*cm, leftMargin=2*cm,
+                            topMargin=2*cm, bottomMargin=2*cm)
+
+    styles = getSampleStyleSheet()
+    accent = colors.HexColor("#6366f1")
+
+    title_style = ParagraphStyle("title", parent=styles["Title"],
+                                  textColor=accent, fontSize=22, spaceAfter=6)
+    h2_style = ParagraphStyle("h2", parent=styles["Heading2"],
+                               textColor=accent, fontSize=13, spaceBefore=16, spaceAfter=6)
+    normal = styles["Normal"]
+
+    story = []
+
+    # Header
+    story.append(Paragraph("MetaLens — Data Report", title_style))
+    story.append(Paragraph(f"Table: <b>{table_name}</b> &nbsp;|&nbsp; File: <b>{filename}</b>", normal))
+    story.append(Spacer(1, 0.4*cm))
+
+    # Summary stats
+    story.append(Paragraph("Summary", h2_style))
+    summary_data = [
+        ["Metric", "Value"],
+        ["Total Columns (Metadata)", str(len(columns))],
+        ["Total Columns (Excel)", str(len(session.get("columns", [])))],
+        ["PII Sensitive Columns", str(len(pii_sensitive))],
+        ["PII Non-Sensitive Columns", str(len(pii_nonsensitive))],
+        ["Total Null Values", str(total_nulls)],
+        ["Data Quality Score", f"{quality_score} / 100"],
+    ]
+    summary_table = Table(summary_data, colWidths=[9*cm, 7*cm])
+    summary_table.setStyle(TableStyle([
+        ("BACKGROUND", (0,0), (-1,0), accent),
+        ("TEXTCOLOR", (0,0), (-1,0), colors.white),
+        ("FONTNAME", (0,0), (-1,0), "Helvetica-Bold"),
+        ("FONTSIZE", (0,0), (-1,-1), 10),
+        ("ROWBACKGROUNDS", (0,1), (-1,-1), [colors.HexColor("#f5f3ff"), colors.white]),
+        ("GRID", (0,0), (-1,-1), 0.5, colors.HexColor("#e5e7eb")),
+        ("PADDING", (0,0), (-1,-1), 6),
+    ]))
+    story.append(summary_table)
+
+    # PII Section
+    story.append(Paragraph("PII Detection", h2_style))
+    if pii_sensitive:
+        story.append(Paragraph("<b>Sensitive columns (masked in preview):</b>", normal))
+        for c in pii_sensitive:
+            story.append(Paragraph(f"• {c['name']} ({c['type']})", normal))
+    if pii_nonsensitive:
+        story.append(Spacer(1, 0.2*cm))
+        story.append(Paragraph("<b>Non-Sensitive PII columns:</b>", normal))
+        for c in pii_nonsensitive:
+            story.append(Paragraph(f"• {c['name']} ({c['type']})", normal))
+
+    # Column metadata table
+    story.append(Paragraph("Column Metadata", h2_style))
+    col_data = [["Column Name", "Type", "Tags"]]
+    for c in columns:
+        tag_str = ", ".join(t.split(".")[-1] for t in c["tags"]) or "—"
+        col_data.append([c["name"], c["type"], tag_str])
+
+    col_table = Table(col_data, colWidths=[6*cm, 4*cm, 7*cm])
+    col_table.setStyle(TableStyle([
+        ("BACKGROUND", (0,0), (-1,0), accent),
+        ("TEXTCOLOR", (0,0), (-1,0), colors.white),
+        ("FONTNAME", (0,0), (-1,0), "Helvetica-Bold"),
+        ("FONTSIZE", (0,0), (-1,-1), 9),
+        ("ROWBACKGROUNDS", (0,1), (-1,-1), [colors.HexColor("#f5f3ff"), colors.white]),
+        ("GRID", (0,0), (-1,-1), 0.5, colors.HexColor("#e5e7eb")),
+        ("PADDING", (0,0), (-1,-1), 5),
+    ]))
+    story.append(col_table)
+
+    # Excel profile
+    if profile:
+        story.append(Paragraph("Excel Data Profile", h2_style))
+        prof_data = [["Column", "Nulls", "Unique Values", "Sample"]]
+        for col_name, stats in profile.items():
+            prof_data.append([
+                col_name,
+                str(stats.get("null_count", 0)),
+                str(stats.get("unique_values", 0)),
+                str(stats.get("sample", ""))[:40]
+            ])
+        prof_table = Table(prof_data, colWidths=[5*cm, 2.5*cm, 3.5*cm, 6*cm])
+        prof_table.setStyle(TableStyle([
+            ("BACKGROUND", (0,0), (-1,0), accent),
+            ("TEXTCOLOR", (0,0), (-1,0), colors.white),
+            ("FONTNAME", (0,0), (-1,0), "Helvetica-Bold"),
+            ("FONTSIZE", (0,0), (-1,-1), 8),
+            ("ROWBACKGROUNDS", (0,1), (-1,-1), [colors.HexColor("#f5f3ff"), colors.white]),
+            ("GRID", (0,0), (-1,-1), 0.5, colors.HexColor("#e5e7eb")),
+            ("PADDING", (0,0), (-1,-1), 4),
+        ]))
+        story.append(prof_table)
+
+    doc.build(story)
+    buffer.seek(0)
+
+    return send_file(buffer, as_attachment=True,
+                     download_name=f"metalens_{table_name}_report.pdf",
+                     mimetype="application/pdf")
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=False)
