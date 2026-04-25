@@ -524,6 +524,36 @@ def export_pdf():
                      download_name=f"metalens_{table_name}_report.pdf",
                      mimetype="application/pdf")
 
+@app.route("/update_description", methods=["POST"])
+def update_description():
+    col_name = request.form.get("column")
+    description = request.form.get("description")
+    fqn = session.get("selected_fqn", "ACME_MYSQL.default.FINANCIAL_STAGING.ACCOUNTS")
+
+    # Fetch current table data to get column id
+    table_resp = requests.get(
+        f"https://sandbox.open-metadata.org/api/v1/tables/name/{fqn}?fields=columns",
+        headers=headers
+    ).json()
+
+    # Build patch payload
+    columns_patch = []
+    for col in table_resp["columns"]:
+        if col["name"].upper() == col_name.upper():
+            col["description"] = description
+        columns_patch.append(col)
+
+    patch_resp = requests.patch(
+        f"https://sandbox.open-metadata.org/api/v1/tables/{table_resp['id']}",
+        headers={**headers, "Content-Type": "application/json-patch+json"},
+        json=[{"op": "replace", "path": "/columns", "value": columns_patch}]
+    )
+
+    if patch_resp.status_code in [200, 201]:
+        return {"status": "ok"}
+    else:
+        return {"status": "error", "detail": patch_resp.text}, 400
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=False)
