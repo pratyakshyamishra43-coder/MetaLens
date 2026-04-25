@@ -64,11 +64,34 @@
             <span style="font-size: 20px; color: {{ '#dc2626' if 'PII.Sensitive' in col.tags|join else '#d97706' }};">
                 {{ '🛡' if 'PII.Sensitive' in col.tags|join else '⚠' }}
             </span>
-            <div>
+            <div style="flex:1;">
                 <div class="pii-col-name">{{ col.name }}</div>
                 <div class="pii-col-desc">
                     {{ 'Direct identifier · Could cause harm if exposed' if 'PII.Sensitive' in col.tags|join else 'Quasi-identifier · Low risk but handle with care' }}
                 </div>
+
+                <!-- Inline description editor -->
+                <div id="desc-display-{{ col.name }}" style="margin-top:6px; font-size:12px; color:#6b7280;">
+                    <span id="desc-text-{{ col.name }}">No description — </span>
+                    <span style="color:#6366f1; cursor:pointer; font-weight:600;"
+                          onclick="showEditor('{{ col.name }}')">✏ Edit</span>
+                </div>
+                <div id="desc-editor-{{ col.name }}" style="display:none; margin-top:8px; display:none;">
+                    <input type="text" id="desc-input-{{ col.name }}"
+                           placeholder="Add a description..."
+                           style="width:100%; padding:6px 10px; border:1px solid #6366f1; border-radius:6px; font-size:13px; outline:none;">
+                    <div style="margin-top:6px; display:flex; gap:8px;">
+                        <button onclick="saveDescription('{{ col.name }}')"
+                                style="background:#6366f1; color:white; border:none; padding:5px 14px; border-radius:6px; font-size:12px; cursor:pointer; font-weight:600;">
+                            Save
+                        </button>
+                        <button onclick="cancelEditor('{{ col.name }}')"
+                                style="background:#f3f4f6; color:#6b7280; border:none; padding:5px 14px; border-radius:6px; font-size:12px; cursor:pointer;">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+                <div id="desc-toast-{{ col.name }}" style="display:none; margin-top:6px; font-size:12px; color:#16a34a; font-weight:600;">✅ Saved to OpenMetadata</div>
             </div>
         </div>
         <div style="display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end;">
@@ -153,6 +176,43 @@ fetch('/column_scores')
             </div>`;
         }).join('');
     });
+</script>
+
+<script>
+function showEditor(col) {
+    document.getElementById('desc-display-' + col).style.display = 'none';
+    document.getElementById('desc-editor-' + col).style.display = 'block';
+    document.getElementById('desc-input-' + col).focus();
+}
+
+function cancelEditor(col) {
+    document.getElementById('desc-editor-' + col).style.display = 'none';
+    document.getElementById('desc-display-' + col).style.display = 'block';
+}
+
+function saveDescription(col) {
+    const desc = document.getElementById('desc-input-' + col).value.trim();
+    if (!desc) return;
+
+    const form = new FormData();
+    form.append('column', col);
+    form.append('description', desc);
+
+    fetch('/update_description', { method: 'POST', body: form })
+        .then(r => r.json())
+        .then(data => {
+            if (data.status === 'ok') {
+                document.getElementById('desc-text-' + col).textContent = desc + ' — ';
+                document.getElementById('desc-editor-' + col).style.display = 'none';
+                document.getElementById('desc-display-' + col).style.display = 'block';
+                const toast = document.getElementById('desc-toast-' + col);
+                toast.style.display = 'block';
+                setTimeout(() => toast.style.display = 'none', 3000);
+            } else {
+                alert('Save failed: ' + (data.detail || 'Unknown error'));
+            }
+        });
+}
 </script>
 {% endblock %}
 
