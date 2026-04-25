@@ -550,10 +550,13 @@ def update_description():
     )
 
     if patch_resp.status_code in [200, 201]:
-        return {"status": "ok"}
+             return {"status": "ok"}
+    elif patch_resp.status_code == 403:
+            return {"status": "error", "detail": "Sandbox is read-only for this account. Write-back works on self-hosted OpenMetadata."}, 200
     else:
-        return {"status": "error", "detail": patch_resp.text}, 400
+            return {"status": "error", "detail": patch_resp.text}, 400
 
+    
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=False)
