@@ -209,7 +209,12 @@ function saveDescription(col) {
                 toast.style.display = 'block';
                 setTimeout(() => toast.style.display = 'none', 3000);
             } else {
-                alert('Save failed: ' + (data.detail || 'Unknown error'));
+                const toast = document.getElementById('desc-toast-' + col);
+                toast.style.display = 'block';
+                toast.style.color = '#d97706';
+                toast.textContent = '⚠ ' + (data.detail || 'Save failed');
+                setTimeout(() => toast.style.display = 'none', 4000);
+                cancelEditor(col);
             }
         });
 }
