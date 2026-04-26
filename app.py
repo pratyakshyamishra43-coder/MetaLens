@@ -550,6 +550,58 @@ def update_description():
         json=[{"op": "replace", "path": "/columns", "value": columns_patch}]
     )
 
+
+
+    @app.route("/compliance")
+def compliance():
+    if not session.get("filename"):
+        return redirect(url_for("index"))
+    
+    table_name, columns = fetch_metadata()
+    
+    gdpr_rules = ["ACCOUNT_NUMBER", "EMAIL", "PHONE", "ADDRESS", "NAME", "DOB", "SSN", "IP"]
+    hipaa_rules = ["DIAGNOSIS", "MEDICATION", "TREATMENT", "PATIENT", "HEALTH", "INSURANCE", "PROVIDER"]
+    pci_rules = ["CARD", "CVV", "EXPIRY", "PAN", "ACCOUNT_NUMBER", "ROUTING", "BALANCE"]
+
+    results = []
+    for col in columns:
+        name_upper = col["name"].upper()
+        tags = col["tags"]
+        is_pii_sensitive = any("PII.Sensitive" in t for t in tags)
+        is_pii_non = any("PII.NonSensitive" in t for t in tags)
+
+        gdpr_hit = any(r in name_upper for r in gdpr_rules) or is_pii_sensitive
+        hipaa_hit = any(r in name_upper for r in hipaa_rules) or is_pii_sensitive
+        pci_hit = any(r in name_upper for r in pci_rules)
+
+        risk = "High" if is_pii_sensitive else "Medium" if is_pii_non else "Low"
+        risk_color = "#ef4444" if risk == "High" else "#f59e0b" if risk == "Medium" else "#22c55e"
+
+        results.append({
+            "name": col["name"],
+            "type": col["type"],
+            "gdpr": gdpr_hit,
+            "hipaa": hipaa_hit,
+            "pci": pci_hit,
+            "risk": risk,
+            "risk_color": risk_color,
+            "tags": tags
+        })
+
+    gdpr_count = sum(1 for r in results if r["gdpr"])
+    hipaa_count = sum(1 for r in results if r["hipaa"])
+    pci_count = sum(1 for r in results if r["pci"])
+    high_risk = sum(1 for r in results if r["risk"] == "High")
+
+    return render_template("compliance.html",
+        table_name=table_name,
+        results=results,
+        gdpr_count=gdpr_count,
+        hipaa_count=hipaa_count,
+        pci_count=pci_count,
+        high_risk=high_risk
+    )
+
     if patch_resp.status_code in [200, 201]:
              return {"status": "ok"}
     elif patch_resp.status_code == 403:
