@@ -84,6 +84,9 @@ MetaLens connects your Excel file to OpenMetadata's governance layer and uses AI
 **9. Smart Match — Excel columns mapped to OpenMetadata schema with AI suggestions**
 ![Smart Match](screenshots/smartmatch.png)
 
+**10. Compliance Report — GDPR / HIPAA / PCI-DSS matrix auto-generated from PII findings**
+![Compliance](screenshots/compliance.png) ![Compliance Report](screenshots/compliance1.png)
+
 
 ---
 
@@ -129,29 +132,29 @@ GROQ_API_KEY=your_groq_api_key
 
 ## 📁 Project Structure
 
+```
 MetaLens/
-├── app.py                  
-├── fetch_metadata.py     
-├── parse_excel.py         
-├── pipeline.py            
+├── app.py
+├── fetch_metadata.py
+├── parse_excel.py
+├── pipeline.py
 ├── requirements.txt
 ├── Procfile
 ├── .env.example
+├── accounts_sample.xlsx
 ├── static/
 │   └── style.css
-├── templates/
-│   ├── base.html
-│   ├── index.html
-│   ├── analysis.html
-│   ├── quality.html
-│   ├── chat.html
-│   ├── lineage.html
-│   ├── completeness.html
-│   ├── smart_match.html
-│   └── compliance.html
-├── screenshots/
-└── accounts_sample.xlsx
-
+└── templates/
+    ├── base.html
+    ├── index.html
+    ├── analysis.html
+    ├── quality.html
+    ├── chat.html
+    ├── lineage.html
+    ├── completeness.html
+    ├── smart_match.html
+    └── compliance.html
+```
 
 ---
 
