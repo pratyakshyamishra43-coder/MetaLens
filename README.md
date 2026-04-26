@@ -58,7 +58,7 @@ MetaLens connects your Excel file to OpenMetadata's governance layer and uses AI
 ## 📸 Walkthrough
 
 **1. Dashboard — Upload your Excel file to begin analysis**
-![Dashboard](screenshots/dashboard.png)
+![Dashboard](screenshots/dashboard1.png)
 
 **2. Analysis — Columns matched to OpenMetadata; PII auto-detected and masked**
 ![Analysis](screenshots/analysis.png) ![PII](screenshots/analysis1.png)
