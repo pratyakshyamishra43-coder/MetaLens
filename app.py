@@ -550,14 +550,13 @@ def update_description():
         json=[{"op": "replace", "path": "/columns", "value": columns_patch}]
     )
 
-
-
-    @app.route("/compliance")
-    def compliance():
-        if not session.get("filename"):
-            return redirect(url_for("index"))
-    
+@app.route("/compliance")
+def compliance():
+    if not session.get("filename"):
+        return redirect(url_for("index"))
     table_name, columns = fetch_metadata()
+
+
     
     gdpr_rules = ["ACCOUNT_NUMBER", "EMAIL", "PHONE", "ADDRESS", "NAME", "DOB", "SSN", "IP"]
     hipaa_rules = ["DIAGNOSIS", "MEDICATION", "TREATMENT", "PATIENT", "HEALTH", "INSURANCE", "PROVIDER"]
