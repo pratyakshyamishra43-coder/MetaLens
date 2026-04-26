@@ -32,7 +32,8 @@ def fetch_metadata():
             "type": col["dataType"],
             "tags": tags,
             "sensitivity": sensitivity,
-            "tier": tier
+            "tier": tier,
+            "description": col.get("description", "")
         })
     return data["name"], columns
 
