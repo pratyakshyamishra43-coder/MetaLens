@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:28px;">
+    <div>
+        <div class="card-label">⚖ COMPLIANCE</div>
+        <div class="card-title">Compliance Report</div>
+        <div class="card-subtitle">GDPR · HIPAA · PCI-DSS analysis for <strong style="color:#6366f1;">{{ table_name }}</strong></div>
+    </div>
+    <a href="/export_pdf" style="background:#6366f1; color:white; padding:0.5rem 1.2rem; border-radius:8px; text-decoration:none; font-weight:600;">⬇ Export PDF</a>
+</div>
+
+<!-- Summary cards -->
+<div style="display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-bottom:2rem;">
+    <div class="card" style="text-align:center; padding:1.5rem; border-top:3px solid #ef4444;">
+        <div style="font-size:2rem; font-weight:700; color:#ef4444;">{{ high_risk }}</div>
+        <div style="font-size:0.85rem; color:var(--text-muted);">High Risk Columns</div>
+    </div>
+    <div class="card" style="text-align:center; padding:1.5rem; border-top:3px solid #3b82f6;">
+        <div style="font-size:2rem; font-weight:700; color:#3b82f6;">{{ gdpr_count }}</div>
+        <div style="font-size:0.85rem; color:var(--text-muted);">GDPR Relevant</div>
+    </div>
+    <div class="card" style="text-align:center; padding:1.5rem; border-top:3px solid #8b5cf6;">
+        <div style="font-size:2rem; font-weight:700; color:#8b5cf6;">{{ hipaa_count }}</div>
+        <div style="font-size:0.85rem; color:var(--text-muted);">HIPAA Relevant</div>
+    </div>
+    <div class="card" style="text-align:center; padding:1.5rem; border-top:3px solid #f59e0b;">
+        <div style="font-size:2rem; font-weight:700; color:#f59e0b;">{{ pci_count }}</div>
+        <div style="font-size:0.85rem; color:var(--text-muted);">PCI-DSS Relevant</div>
+    </div>
+</div>
+
+<!-- Compliance table -->
+<div class="card">
+    <h3 style="margin-bottom:1.25rem;">Column-Level Compliance Matrix</h3>
+    <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
+        <thead>
+            <tr style="border-bottom:2px solid var(--border);">
+                <th style="text-align:left; padding:0.6rem;">Column</th>
+                <th style="text-align:left; padding:0.6rem;">Type</th>
+                <th style="text-align:center; padding:0.6rem;">GDPR</th>
+                <th style="text-align:center; padding:0.6rem;">HIPAA</th>
+                <th style="text-align:center; padding:0.6rem;">PCI-DSS</th>
+                <th style="text-align:center; padding:0.6rem;">Risk</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in results %}
+            <tr style="border-bottom:1px solid var(--border);">
+                <td style="padding:0.6rem; font-weight:500; font-family:monospace;">{{ r.name }}</td>
+                <td style="padding:0.6rem; color:var(--text-muted);">{{ r.type }}</td>
+                <td style="text-align:center; padding:0.6rem;">
+                    {% if r.gdpr %}<span style="background:#dbeafe; color:#1d4ed8; padding:2px 10px; border-radius:999px; font-size:0.78rem; font-weight:600;">⚠ Yes</span>
+                    {% else %}<span style="color:#9ca3af; font-size:0.85rem;">—</span>{% endif %}
+                </td>
+                <td style="text-align:center; padding:0.6rem;">
+                    {% if r.hipaa %}<span style="background:#ede9fe; color:#6d28d9; padding:2px 10px; border-radius:999px; font-size:0.78rem; font-weight:600;">⚠ Yes</span>
+                    {% else %}<span style="color:#9ca3af; font-size:0.85rem;">—</span>{% endif %}
+                </td>
+                <td style="text-align:center; padding:0.6rem;">
+                    {% if r.pci %}<span style="background:#fef3c7; color:#d97706; padding:2px 10px; border-radius:999px; font-size:0.78rem; font-weight:600;">⚠ Yes</span>
+                    {% else %}<span style="color:#9ca3af; font-size:0.85rem;">—</span>{% endif %}
+                </td>
+                <td style="text-align:center; padding:0.6rem;">
+                    <span style="background:{{ r.risk_color }}22; color:{{ r.risk_color }}; padding:2px 10px; border-radius:999px; font-size:0.78rem; font-weight:600;">
+                        {{ r.risk }}
+                    </span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Recommendations -->
+<div class="card" style="margin-top:1.5rem;">
+    <h3 style="margin-bottom:1rem;">📋 Recommendations</h3>
+    {% if high_risk > 0 %}
+    <div style="background:#fee2e2; border-left:4px solid #ef4444; padding:1rem; border-radius:6px; margin-bottom:0.75rem;">
+        <strong style="color:#dc2626;">🔴 High Risk:</strong> {{ high_risk }} column(s) contain PII.Sensitive data. Ensure encryption at rest, strict access controls, and audit logging.
+    </div>
+    {% endif %}
+    {% if gdpr_count > 0 %}
+    <div style="background:#dbeafe; border-left:4px solid #3b82f6; padding:1rem; border-radius:6px; margin-bottom:0.75rem;">
+        <strong style="color:#1d4ed8;">🔵 GDPR:</strong> {{ gdpr_count }} column(s) may contain personal data under GDPR Article 4. Ensure lawful basis for processing and data subject rights are documented.
+    </div>
+    {% endif %}
+    {% if pci_count > 0 %}
+    <div style="background:#fef3c7; border-left:4px solid #f59e0b; padding:1rem; border-radius:6px;">
+        <strong style="color:#d97706;">🟡 PCI-DSS:</strong> {{ pci_count }} column(s) may contain cardholder data. Ensure PCI-DSS scope is defined and data is tokenized or masked.
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}
