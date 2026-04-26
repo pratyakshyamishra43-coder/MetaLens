@@ -553,9 +553,9 @@ def update_description():
 
 
     @app.route("/compliance")
-def compliance():
-    if not session.get("filename"):
-        return redirect(url_for("index"))
+    def compliance():
+        if not session.get("filename"):
+            return redirect(url_for("index"))
     
     table_name, columns = fetch_metadata()
     
